@@ -27,8 +27,8 @@ async function run() {
     await client.connect();
 
     const carServicesCollection = client.db("car").collection("services");
-    // booking collection 
-   const bookingCollection = client.db("car").collection("bookings")
+    // booking collection
+    const bookingCollection = client.db("car").collection("bookings");
 
     app.get("/services", async (req, res) => {
       const cursor = carServicesCollection.find();
@@ -47,22 +47,43 @@ async function run() {
     });
 
     // booking
-    app.get('/bookings', async(req, res) => {
+    app.get("/bookings", async (req, res) => {
       console.log(req.query.email);
-      let query = {}
+      let query = {};
       if (req.query?.email) {
-        query = {email : req.query.email}
+        query = { email: req.query.email };
       }
-      const result = await bookingCollection.find().toArray()
-      res.send(result)
-    })
+      const result = await bookingCollection.find().toArray();
+      res.send(result);
+    });
 
-    app.post('/bookings', async(req, res) => {
+    app.post("/bookings", async (req, res) => {
       const booking = req.body;
       // console.log(booking);
-      const result = await bookingCollection.insertOne(booking)
+      const result = await bookingCollection.insertOne(booking);
+      res.send(result);
+    });
+    app.patch('/bookings/:id', async(req, res) => {
+      const id = req.params.id
+      const filter = { _id: new ObjectId(id)}
+      const updatedBooking = req.body
+      console.log(updatedBooking);
+      const updateDoc = {
+        $set:{
+          status:updatedBooking.status
+
+        }
+      }
+      const result = await bookingCollection.updateOne(filter, updateDoc)
       res.send(result)
     })
+    app.delete("/bookings/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
